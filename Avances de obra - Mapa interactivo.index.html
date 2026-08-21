@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Obras Públicas · Ciudad de Córdoba</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:oklch(0.19 0.008 260);
+    --panel:oklch(0.235 0.009 260);
+    --panel2:oklch(0.275 0.010 260);
+    --line:oklch(0.34 0.010 260);
+    --fg:oklch(0.96 0.004 260);
+    --fg-dim:oklch(0.72 0.012 260);
+    --fg-faint:oklch(0.58 0.012 260);
+    --mute:oklch(0.42 0.010 260);
+    --bacheo:oklch(0.70 0.15 62);
+    --pavimento:oklch(0.70 0.15 330);
+    --plaza:oklch(0.70 0.15 150);
+    --cloaca:oklch(0.70 0.15 245);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg);color:var(--fg);
+    font-family:Archivo,Helvetica,Arial,sans-serif;
+    font-size:14px;line-height:1.45;text-wrap:pretty;
+    display:grid;grid-template-rows:auto 1fr;height:100vh;overflow:hidden;
+  }
+  a{color:var(--plaza);text-decoration:none}
+  a:hover{color:var(--fg)}
+  code{font-family:'IBM Plex Mono',monospace;font-size:0.92em}
+
+  header{
+    display:flex;align-items:center;gap:24px;flex-wrap:wrap;
+    padding:14px 20px;border-bottom:1px solid var(--line);background:var(--panel);
+  }
+  .brand{display:flex;flex-direction:column;gap:2px;margin-right:auto}
+  .brand h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-0.01em}
+  .brand span{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--fg-faint)}
+  .kpis{display:flex;gap:10px;flex-wrap:wrap}
+  .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 14px;min-width:104px}
+  .kpi b{display:block;font-size:20px;font-weight:700;letter-spacing:-0.02em;line-height:1.1}
+  .kpi em{font-style:normal;font-size:12px;font-weight:500;color:var(--fg-faint);margin-left:4px}
+  .kpi span{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-faint)}
+
+  main{display:grid;grid-template-columns:352px 1fr;min-height:0}
+  aside{border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0;overflow-y:auto}
+  .controls{padding:14px 16px;display:flex;flex-direction:column;gap:14px;border-bottom:1px solid var(--line);flex:none}
+  .filters{display:flex;flex-direction:column;gap:14px}
+  .ctl-label{display:flex;align-items:center;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--fg-faint);margin-bottom:8px}
+  .ctl-label button{background:none;border:0;padding:0;font:inherit;letter-spacing:0.1em;color:var(--fg-faint);cursor:pointer;text-transform:uppercase}
+  .ctl-label button:hover{color:var(--fg)}
+  input[type=search]{
+    width:100%;padding:9px 11px;border-radius:6px;border:1px solid var(--line);
+    background:var(--bg);color:var(--fg);font-family:inherit;font-size:13px;
+  }
+  input[type=search]:focus{outline:none;border-color:var(--fg-faint)}
+  .types{display:flex;flex-direction:column;gap:6px}
+  .type-btn{
+    display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;
+    border:1px solid var(--line);background:var(--bg);color:var(--fg-dim);
+    font-family:inherit;font-size:13px;cursor:pointer;text-align:left;
+  }
+  .type-btn:hover{border-color:var(--fg-faint);color:var(--fg)}
+  .type-btn[aria-pressed=true]{background:var(--panel2);color:var(--fg);border-color:var(--fg-faint)}
+  .type-btn .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .type-btn .n{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--fg-faint)}
+  .type-btn[aria-pressed=false] .dot{opacity:0.22}
+  .type-btn[aria-pressed=false]{opacity:0.62}
+
+  .seg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+  .seg button{
+    padding:8px 6px;border-radius:6px;border:1px solid var(--line);background:var(--bg);
+    color:var(--fg-dim);font-family:inherit;font-size:12px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:7px;
+  }
+  .seg button:hover{border-color:var(--fg-faint);color:var(--fg)}
+  .seg button[aria-pressed=true]{background:var(--panel2);color:var(--fg);border-color:var(--fg-faint)}
+  .seg .n{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--fg-faint)}
+
+  .range{display:flex;align-items:center;gap:10px}
+  .range input{flex:1;accent-color:var(--plaza)}
+  .range output{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--fg-dim);min-width:62px;text-align:right}
+
+  .source{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .source button,.file-lbl{
+    padding:7px 11px;border-radius:6px;border:1px solid var(--line);background:var(--bg);
+    color:var(--fg-dim);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;
+    text-transform:uppercase;cursor:pointer;
+  }
+  .source button:hover,.file-lbl:hover{border-color:var(--fg-faint);color:var(--fg)}
+  .source input[type=file]{display:none}
+  .src-note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--fg-faint);flex:1 0 100%}
+  .filters.hide{display:none}
+
+  .pend{border-bottom:1px solid var(--line);background:oklch(0.26 0.03 62);display:none;flex:none;order:-1}
+  .pend.on{display:block}
+  .pend .ph{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.86 0.10 62);border-bottom:1px solid var(--line)}
+  .pend .pr{padding:10px 16px;border-bottom:1px solid oklch(0.32 0.02 62)}
+  .pend .pr:last-child{border-bottom:0}
+  .pend .pr h5{margin:0 0 6px;font-size:12.5px;font-weight:600;color:var(--fg)}
+  .pend .pr .in{display:flex;gap:6px}
+  .pend .pr input{flex:1;min-width:0;padding:6px 8px;border-radius:5px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-family:'IBM Plex Mono',monospace;font-size:11px}
+  .pend .pr input:focus{outline:none;border-color:oklch(0.80 0.12 62)}
+  .pend .pr a{padding:6px 9px;border-radius:5px;border:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg-dim);white-space:nowrap}
+  .pend .pr a:hover{border-color:var(--fg-faint);color:var(--fg)}
+  .pend .tip{padding:9px 16px;font-size:11px;color:var(--fg-dim);line-height:1.4}
+
+  .list{min-height:0;flex:none}
+  .list-head{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;position:sticky;top:0;background:var(--panel);border-bottom:1px solid var(--line);z-index:2}
+  .list-head span{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--fg-faint)}
+  .item{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer}
+  .item:hover{background:var(--panel2)}
+  .item.on{background:var(--panel2);box-shadow:inset 3px 0 0 var(--fg)}
+  .item.uncovered{opacity:0.68}
+  .item .bar{width:4px;align-self:stretch;border-radius:2px;background:var(--line);position:relative;overflow:hidden}
+  .item .bar i{position:absolute;bottom:0;left:0;right:0;display:block}
+  .item h3{margin:0 0 3px;font-size:13.5px;font-weight:600;letter-spacing:-0.005em}
+  .item p{margin:0;font-size:12px;color:var(--fg-faint)}
+  .item .meta{display:flex;align-items:baseline;gap:8px;margin-top:5px;flex-wrap:wrap}
+  .item .pct{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500}
+  .item .tag{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-faint)}
+  .chip{
+    display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:99px;
+    font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.09em;text-transform:uppercase;
+    border:1px solid var(--line);color:var(--fg-dim);white-space:nowrap;
+  }
+  .chip.cov{border-color:oklch(0.70 0.15 150 / .55);color:oklch(0.80 0.13 150);background:oklch(0.70 0.15 150 / .12)}
+  .chip.pub{border-color:oklch(0.78 0.16 95 / .55);color:oklch(0.86 0.14 95);background:oklch(0.78 0.16 95 / .12)}
+  .chip.non{border-style:dashed;color:var(--fg-faint)}
+  .item .flags{display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+
+  .empty{padding:26px 16px;color:var(--fg-faint);font-size:13px}
+  .empty b{display:block;color:var(--fg-dim);margin-bottom:4px}
+
+  .map-wrap{position:relative;min-height:0}
+  #map{position:absolute;inset:0;background:var(--bg)}
+  .leaflet-container{font-family:Archivo,Helvetica,sans-serif;background:var(--bg)}
+  .leaflet-control-attribution{background:rgba(20,22,28,.82)!important;color:var(--fg-faint)!important;font-size:10px!important}
+  .leaflet-control-attribution a{color:var(--fg-dim)!important}
+  .leaflet-bar a{background:var(--panel)!important;color:var(--fg)!important;border-color:var(--line)!important}
+  .leaflet-bar a:hover{background:var(--panel2)!important}
+
+  .pin{position:relative}
+  .pin i{position:absolute;inset:0;border-radius:50%;box-shadow:0 1px 5px rgba(0,0,0,.55)}
+  .pin b{
+    position:absolute;inset:4px;border-radius:50%;background:var(--panel);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:500;color:var(--fg);
+  }
+  .pin.uncov{opacity:0.8}
+  .pin.uncov b{border:1px dashed var(--mute);color:var(--fg-faint);inset:3px}
+  .pin.sel i{box-shadow:0 0 0 3px var(--fg),0 2px 8px rgba(0,0,0,.6)}
+  .pin s{
+    position:absolute;right:-3px;top:-3px;width:13px;height:13px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;text-decoration:none;
+    font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;
+    border:1.5px solid var(--panel);
+  }
+  .pin s.c{background:oklch(0.72 0.15 150);color:oklch(0.20 0.04 150)}
+  .pin s.p{background:oklch(0.80 0.16 95);color:oklch(0.22 0.05 95)}
+
+  .legend{
+    position:absolute;left:14px;top:14px;z-index:650;
+    background:rgba(35,38,46,.94);border:1px solid var(--line);border-radius:9px;padding:12px 14px;
+    display:flex;flex-direction:column;gap:9px;max-width:214px;
+  }
+  .legend .lt{position:absolute;top:8px;right:9px;background:none;border:0;color:var(--fg-faint);font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;line-height:1;padding:2px}
+  .legend .lt:hover{color:var(--fg)}
+  .legend.min{gap:0;padding:9px 32px 9px 12px}
+  .legend.min .row,.legend.min hr,.legend.min h4 ~ h4{display:none}
+  .legend h4{margin:0;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--fg-faint);font-weight:400}
+  .legend .row{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--fg-dim)}
+  .legend .sw{width:14px;height:14px;border-radius:50%;flex:none;position:relative}
+  .legend .sw.dash{border:1px dashed var(--mute);background:none}
+  .legend hr{border:0;border-top:1px solid var(--line);margin:1px 0}
+
+  .detail{
+    position:absolute;top:14px;right:14px;width:300px;z-index:600;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    box-shadow:0 16px 44px rgba(0,0,0,.45);padding:18px;display:none;
+  }
+  .detail.on{display:block}
+  .detail .close{position:absolute;top:10px;right:10px;background:none;border:0;color:var(--fg-faint);font-size:18px;cursor:pointer;line-height:1}
+  .detail .close:hover{color:var(--fg)}
+  .detail .tag{display:inline-flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--fg-dim)}
+  .detail h2{margin:10px 0 4px;font-size:17px;font-weight:700;letter-spacing:-0.015em;padding-right:14px}
+  .detail .flags{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}
+  .prog{margin:16px 0 14px}
+  .prog .row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+  .prog .row b{font-size:26px;font-weight:700;letter-spacing:-0.03em}
+  .prog .row span{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-faint)}
+  .track{height:6px;border-radius:3px;background:var(--panel2);overflow:hidden}
+  .track i{display:block;height:100%;border-radius:3px}
+  .facts{display:grid;grid-template-columns:1fr 1fr;gap:12px;border-top:1px solid var(--line);padding-top:14px}
+  .facts div span{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-faint);margin-bottom:2px}
+  .facts div b{font-size:12.5px;font-weight:500;word-break:break-word}
+  .mega{
+    display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;
+    padding:9px;border-radius:6px;border:1px solid oklch(0.70 0.15 150 / .5);
+    background:oklch(0.70 0.15 150 / .12);color:oklch(0.84 0.13 150);
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;
+  }
+  .mega:hover{background:oklch(0.70 0.15 150 / .22);color:var(--fg)}
+  .coords{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--fg-faint);margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+
+  .drop{
+    position:absolute;inset:0;z-index:900;background:rgba(20,22,28,.9);
+    display:none;align-items:center;justify-content:center;
+    border:2px dashed var(--fg-faint);border-radius:4px;
+    font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg);
+  }
+  .drop.on{display:flex}
+
+  @media (max-width:880px){
+    body{overflow:auto}
+    main{grid-template-columns:1fr;grid-template-rows:auto 66vh}
+    aside{border-right:0;border-bottom:1px solid var(--line)}
+    .controls{max-height:none}
+    .list{max-height:none}
+    .detail{width:auto;left:14px;right:14px}
+    .legend{max-width:170px;padding:9px 11px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>Obras Públicas · Ciudad de Córdoba</h1>
+    <span>Bacheo · Pavimentación · Plazas · Cloacas — avance y cobertura de contenido</span>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><b id="k-total">0</b><span>Obras</span></div>
+    <div class="kpi"><b id="k-cov">0<em id="k-cov-p"></em></b><span>Cubiertas</span></div>
+    <div class="kpi"><b id="k-pub">0</b><span>Publicadas</span></div>
+    <div class="kpi"><b id="k-pend">0</b><span>Sin cubrir</span></div>
+    <div class="kpi"><b id="k-avg">0%</b><span>Avance medio</span></div>
+  </div>
+</header>
+
+<main>
+  <aside>
+    <div class="controls">      <div>
+        <div class="ctl-label"><span>Datos</span></div>
+        <div class="source">
+          <label class="file-lbl" for="csvfile">Cargar CSV</label>
+          <input type="file" id="csvfile" accept=".csv,text/csv">
+          <button type="button" id="reload">Recargar planilla</button>
+          <div class="src-note" id="srcnote">Sin obras cargadas.</div>
+        </div>
+      </div>
+      <div class="filters" id="filters">
+      <div>
+        <div class="ctl-label"><span>Buscar</span></div>
+        <input type="search" id="q" placeholder="Obra, contacto o coordenada…" autocomplete="off">
+      </div>
+      <div>
+        <div class="ctl-label"><span>Cobertura de contenido</span><button type="button" id="cov-all">Todas</button></div>
+        <div class="seg" id="cov"></div>
+      </div>
+      <div>
+        <div class="ctl-label"><span>Tipo de obra</span><button type="button" id="type-all">Todas</button></div>
+        <div class="types" id="types"></div>
+      </div>
+      <div>
+        <div class="ctl-label"><span>Avance de obra</span></div>
+        <div class="range">
+          <input type="range" id="minp" min="0" max="100" step="5" value="0">
+          <output id="minout">0 – 100%</output>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="pend" id="pend"></div>
+    <div class="list" id="list"></div>
+  </aside>
+
+  <div class="map-wrap">
+    <div id="map"></div>
+    <div class="legend" id="legend">
+      <button class="lt" type="button" id="legend-t" title="Contraer leyenda">−</button>
+      <h4>Cobertura</h4>
+      <div class="row"><span class="sw" style="background:oklch(0.72 0.15 150)"></span>Cubierta (con registro)</div>
+      <div class="row"><span class="sw" style="background:oklch(0.80 0.16 95)"></span>Publicada en redes</div>
+      <div class="row"><span class="sw dash"></span>Sin cubrir</div>
+      <hr>
+      <h4>Tipo de obra</h4>
+      <div class="row"><span class="sw" style="background:var(--bacheo)"></span>Bacheo</div>
+      <div class="row"><span class="sw" style="background:var(--pavimento)"></span>Pavimentación</div>
+      <div class="row"><span class="sw" style="background:var(--plaza)"></span>Plazas</div>
+      <div class="row"><span class="sw" style="background:var(--cloaca)"></span>Cloacas</div>
+    </div>
+    <div class="detail" id="detail"></div>
+    <div class="drop" id="drop">Soltá el CSV acá</div>
+  </div>
+</main>
+
+<script>
+/* ─────────────────────────────────────────────────────────────
+   FUENTE DE DATOS
+   Pegá acá el link CSV de la planilla de Google Sheets
+   (Archivo › Compartir › Publicar en la web › CSV) y el mapa
+   se actualiza solo cada vez que se recarga la página.
+   ───────────────────────────────────────────────────────────── */
+const FUENTE_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRbR_hsNL1K5NT0xwI_2OhQvMV0rdbhi77Tx16mK3uA63MDHB32i8emcwSJ4_d4oIzVFwSO0g8Hk9QG/pub?gid=1754632378&single=true&output=csv';
+
+const TIPOS = {
+  bacheo:    {label:'Bacheo', color:'oklch(0.70 0.15 62)'},
+  pavimento: {label:'Pavimentación', color:'oklch(0.70 0.15 330)'},
+  plaza:     {label:'Plazas y espacio público', color:'oklch(0.70 0.15 150)'},
+  cloaca:    {label:'Cloacas y red sanitaria', color:'oklch(0.70 0.15 245)'}
+};
+
+const COBERTURA = {
+  pub:  {label:'Publicadas',   test:o=>o.cubierta && o.publicada},
+  nopub:{label:'Sin publicar', test:o=>o.cubierta && !o.publicada},
+  sin:  {label:'Sin cubrir',   test:o=>!o.cubierta},
+  cov:  {label:'Cubiertas',    test:o=>o.cubierta}
+};
+
+/* Obras cargadas en memoria. Estructura por obra:
+   { n, t:'bacheo'|'pavimento'|'plaza'|'cloaca', p:0-100,
+     lat, lng, contacto, mega, publicada, cubierta }            */
+let OBRAS = [];
+
+const state = {
+  types:new Set(Object.keys(TIPOS)),
+  cov:new Set(['pub','nopub','sin']),
+  q:'', minp:0, sel:null
+};
+
+const map = L.map('map', {zoomControl:false, minZoom:10}).setView([-31.4180,-64.1850], 12);
+L.control.zoom({position:'bottomright'}).addTo(map);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution:'© OpenStreetMap contributors', maxZoom:19
+}).addTo(map);
+const layer = L.layerGroup().addTo(map);
+
+/* ── normalización de la planilla ───────────────────────────── */
+function parseCSV(text){
+  text = text.replace(/^\uFEFF/,'').replace(/\r\n?/g,'\n');
+  const head = text.split('\n')[0];
+  const D = (head.split(';').length > head.split(',').length) ? ';' : ',';
+  const rows=[]; let row=[], f='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if(c==='"') q=true;
+    else if(c===D){ row.push(f); f=''; }
+    else if(c==='\n'){ row.push(f); f=''; rows.push(row); row=[]; }
+    else f+=c;
+  }
+  row.push(f); if(row.some(v=>v.trim()!=='')) rows.push(row);
+  return rows;
+}
+const norm = s => (s||'').toString().trim().toLowerCase()
+  .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+function pickCol(headers, names){
+  for(const nm of names){
+    const i = headers.findIndex(h => h === nm || h.includes(nm));
+    if(i > -1) return i;
+  }
+  return -1;
+}
+function tipoKey(v){
+  const s = norm(v);
+  if(s.includes('bache')) return 'bacheo';
+  if(s.includes('pavim') || s.includes('asfalt') || s.includes('repav')) return 'pavimento';
+  if(s.includes('plaza') || s.includes('parque') || s.includes('espacio')) return 'plaza';
+  if(s.includes('cloac') || s.includes('sanitar') || s.includes('colector')) return 'cloaca';
+  return 'bacheo';
+}
+const esSi = v => ['si','sí','yes','true','x','1','publicada','publicado'].includes(norm(v));
+
+/* acepta decimal (-31.42) o sexagesimal (31°26'02.0"S) */
+function num(v){
+  const s = (v||'').toString().trim();
+  if(!s) return NaN;
+  const d = s.match(/^(-?\d+(?:[.,]\d+)?)\s*[°º]?\s*(?:(\d+(?:[.,]\d+)?)\s*['′´]\s*(?:(\d+(?:[.,]\d+)?)\s*["″]?)?)?\s*([NSEWO])?$/i);
+  if(!d) return NaN;
+  const f = x => x ? parseFloat(x.replace(',','.')) : 0;
+  let val = Math.abs(f(d[1])) + f(d[2])/60 + f(d[3])/3600;
+  const h = (d[4]||'').toUpperCase();
+  if(h==='S' || h==='W' || h==='O' || /^-/.test(d[1])) val = -val;
+  return val;
+}
+
+function coords(v, latv, lngv){
+  const la = num(latv), ln = num(lngv);
+  if(!isNaN(la) && !isNaN(ln)) return [la,ln];
+  const s = (v||'').toString();
+  let m = s.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)
+       || s.match(/[@=\/](-?\d{1,3}\.\d{3,})[,\s]+(-?\d{1,3}\.\d{3,})/);
+  if(m) return [parseFloat(m[1]), parseFloat(m[2])];
+  if(/^https?:/i.test(s)) return null;
+  m = s.match(/(-?\d+[.,]\d+)\s*[,; ]\s*(-?\d+[.,]\d+)/);
+  if(m) return [parseFloat(m[1].replace(',','.')), parseFloat(m[2].replace(',','.'))];
+  return null;
+}
+
+const LS = 'obras-cba-coords';
+let MANUAL = {};
+try{ MANUAL = JSON.parse(localStorage.getItem(LS) || '{}'); }catch(e){ MANUAL = {}; }
+const saveManual = () => { try{ localStorage.setItem(LS, JSON.stringify(MANUAL)); }catch(e){} };
+let PENDIENTES = [], ULTIMO_CSV = '';
+
+function fromCSV(text){
+  const rows = parseCSV(text);
+  if(!rows.length) return {obras:[], pend:[]};
+  const H = rows[0].map(norm);
+  const c = {
+    n: pickCol(H,['nombre de obra','nombre','obra']),
+    u: pickCol(H,['ubicacion','coordenada','coord','maps']),
+    lat: pickCol(H,['lat']),
+    lng: pickCol(H,['long','lng','lon']),
+    ct: pickCol(H,['contacto']),
+    t: pickCol(H,['tipo']),
+    p: pickCol(H,['porcentaje','avance','%']),
+    m: pickCol(H,['mega','link de mega','drive']),
+    ra: pickCol(H,['registro audiovisual','registro','cubierta','cubrimos']),
+    pb: pickCol(H,['publicada','publicado','redes','estado de publicacion'])
+  };
+  const obras = [], pend = [];
+  rows.slice(1).forEach(r=>{
+    const get = i => i>-1 ? (r[i]||'').toString().trim() : '';
+    const nombre = get(c.n);
+    if(!nombre) return;
+    const url = get(c.u), mega = get(c.m), ct = get(c.ct);
+    const o = {
+      n:nombre, t:tipoKey(get(c.t)),
+      p:Math.max(0, Math.min(100, Math.round(parseFloat(get(c.p).replace('%','').replace(',','.'))||0))),
+      contacto: (ct==='-'||ct==='—') ? '' : ct,
+      mega:mega, url:url,
+      cubierta: c.ra>-1 ? esSi(get(c.ra)) : !!mega,
+      publicada: esSi(get(c.pb))
+    };
+    const xy = MANUAL[nombre] || coords(url, c.lat>-1?get(c.lat):'', c.lng>-1?get(c.lng):'');
+    if(!xy){ pend.push(o); return; }
+    o.lat = xy[0]; o.lng = xy[1];
+    obras.push(o);
+  });
+  return {obras, pend};
+}
+
+/* ── pines ──────────────────────────────────────────────────── */
+function pinIcon(o, sel){
+  const c = TIPOS[o.t].color, size = sel ? 34 : 29;
+  const ring = o.cubierta
+    ? `conic-gradient(${c} 0 ${o.p}%, oklch(0.36 0.01 260) ${o.p}% 100%)`
+    : `conic-gradient(color-mix(in oklch, ${c} 40%, oklch(0.40 0.01 260)) 0 ${o.p}%, oklch(0.30 0.01 260) ${o.p}% 100%)`;
+  const badge = (o.cubierta && o.publicada) ? '<s class="p">★</s>' : o.cubierta ? '<s class="c">✓</s>' : '';
+  return L.divIcon({
+    className:'', iconSize:[size,size], iconAnchor:[size/2,size/2],
+    html:`<div class="pin${sel?' sel':''}${o.cubierta?'':' uncov'}" style="width:${size}px;height:${size}px">
+            <i style="background:${ring}"></i><b>${o.p}</b>${badge}
+          </div>`
+  });
+}
+
+function build(){
+  layer.clearLayers();
+  OBRAS.forEach((o,i)=>{
+    o.id = i;
+    o.marker = L.marker([o.lat,o.lng], {icon:pinIcon(o,false)}).on('click', ()=> select(o.id,false));
+  });
+  state.sel = null;
+  document.getElementById('detail').className = 'detail';
+}
+
+function visible(){
+  const q = norm(state.q);
+  return OBRAS.filter(o=>{
+    if(!state.types.has(o.t) || o.p < state.minp) return false;
+    const bucket = o.cubierta ? (o.publicada?'pub':'nopub') : 'sin';
+    if(!state.cov.has(bucket)) return false;
+    if(q && !norm(o.n+' '+o.contacto+' '+o.lat+' '+o.lng).includes(q)) return false;
+    return true;
+  });
+}
+
+/* ── controles ──────────────────────────────────────────────── */
+function renderTypes(){
+  const box = document.getElementById('types'); box.innerHTML='';
+  Object.entries(TIPOS).forEach(([k,v])=>{
+    const n = OBRAS.filter(o=>o.t===k).length;
+    const b = document.createElement('button');
+    b.className='type-btn'; b.type='button';
+    b.setAttribute('aria-pressed', state.types.has(k));
+    b.innerHTML = `<span class="dot" style="background:${v.color}"></span>${v.label}<span class="n">${n}</span>`;
+    b.onclick = ()=>{
+      state.types.has(k) ? state.types.delete(k) : state.types.add(k);
+      if(!state.types.size) state.types = new Set(Object.keys(TIPOS));
+      renderTypes(); render();
+    };
+    box.appendChild(b);
+  });
+}
+function renderCov(){
+  const box = document.getElementById('cov'); box.innerHTML='';
+  [['pub','Publicadas'],['nopub','Sin publicar'],['sin','Sin cubrir']].forEach(([k,label])=>{
+    const n = OBRAS.filter(COBERTURA[k].test).length;
+    const b = document.createElement('button'); b.type='button';
+    b.setAttribute('aria-pressed', state.cov.has(k));
+    b.innerHTML = `${label}<span class="n">${n}</span>`;
+    b.onclick = ()=>{
+      state.cov.has(k) ? state.cov.delete(k) : state.cov.add(k);
+      if(!state.cov.size) state.cov = new Set(['pub','nopub','sin']);
+      renderCov(); render();
+    };
+    box.appendChild(b);
+  });
+  const cub = document.createElement('button'); cub.type='button';
+  const onlyCov = state.cov.has('pub') && state.cov.has('nopub') && !state.cov.has('sin');
+  cub.setAttribute('aria-pressed', onlyCov);
+  cub.style.gridColumn='1 / -1';
+  cub.innerHTML = `Solo cubiertas<span class="n">${OBRAS.filter(o=>o.cubierta).length}</span>`;
+  cub.onclick = ()=>{ state.cov = onlyCov ? new Set(['pub','nopub','sin']) : new Set(['pub','nopub']); renderCov(); render(); };
+  box.appendChild(cub);
+}
+
+/* ── render principal ───────────────────────────────────────── */
+function render(){
+  const vis = visible(), ids = new Set(vis.map(o=>o.id));
+  layer.clearLayers();
+  OBRAS.forEach(o=>{ if(ids.has(o.id)) o.marker.addTo(layer); });
+
+  const list = document.getElementById('list');
+  list.innerHTML = `<div class="list-head"><span>Listado</span><span>${vis.length} de ${OBRAS.length}</span></div>`;
+  if(!vis.length){
+    list.insertAdjacentHTML('beforeend', OBRAS.length
+      ? '<div class="empty">Ningún resultado con estos filtros.</div>'
+      : `<div class="empty"><b>Sin obras cargadas.</b>Cargá el CSV de la planilla (o soltalo sobre el mapa). Columnas esperadas:
+         <code>Nombre de obra · Registro audiovisual · Ubicación · Contacto · Tipo · Porcentaje de avance · Link de Mega · Obra publicada</code></div>`);
+  }
+  vis.slice().sort((a,b)=> (b.cubierta-a.cubierta) || (b.p-a.p)).forEach(o=>{
+    const c = TIPOS[o.t].color;
+    const el = document.createElement('div');
+    el.className = 'item' + (state.sel===o.id?' on':'') + (o.cubierta?'':' uncovered');
+    el.innerHTML = `
+      <div class="bar"><i style="height:${o.p}%;background:${o.cubierta?c:'var(--mute)'}"></i></div>
+      <div>
+        <h3>${o.n}</h3>
+        <p>${o.contacto || o.lat.toFixed(4)+', '+o.lng.toFixed(4)}</p>
+        <div class="meta"><span class="pct" style="color:${c}">${o.p}%</span><span class="tag">${TIPOS[o.t].label}</span></div>
+      </div>
+      <div class="flags">
+        ${o.cubierta ? '<span class="chip cov">Cubierta</span>' : '<span class="chip non">Sin cubrir</span>'}
+        ${(o.cubierta && o.publicada) ? '<span class="chip pub">En redes</span>' : ''}
+        ${o.mega ? '<span class="chip">Mega</span>' : ''}
+      </div>`;
+    el.onclick = ()=> select(o.id, true);
+    list.appendChild(el);
+  });
+
+  document.getElementById('filters').className = OBRAS.length ? 'filters' : 'filters hide';
+
+  const cov = vis.filter(o=>o.cubierta).length;
+  const avg = vis.length ? Math.round(vis.reduce((s,o)=>s+o.p,0)/vis.length) : 0;
+  document.getElementById('k-total').textContent = vis.length;
+  document.getElementById('k-cov').firstChild.textContent = cov;
+  document.getElementById('k-cov-p').textContent = vis.length ? ' · '+Math.round(cov/vis.length*100)+'%' : '';
+  document.getElementById('k-pub').textContent = vis.filter(o=>o.publicada).length;
+  document.getElementById('k-pend').textContent = vis.length - cov;
+  document.getElementById('k-avg').textContent = avg + '%';
+}
+
+function select(id, fly){
+  if(state.sel !== null && OBRAS[state.sel]) OBRAS[state.sel].marker.setIcon(pinIcon(OBRAS[state.sel],false));
+  state.sel = id;
+  const o = OBRAS[id], c = TIPOS[o.t].color;
+  o.marker.setIcon(pinIcon(o,true)); o.marker.setZIndexOffset(1000);
+  if(fly) map.flyTo([o.lat,o.lng], Math.max(map.getZoom(),15), {duration:0.7});
+  const tel = o.contacto && /\d{6,}/.test(o.contacto)
+    ? `<a href="tel:${o.contacto.replace(/[^\d+]/g,'')}">${o.contacto}</a>` : (o.contacto || '—');
+  const det = document.getElementById('detail');
+  det.className = 'detail on';
+  det.innerHTML = `
+    <button class="close" onclick="deselect()" aria-label="Cerrar">×</button>
+    <span class="tag"><span style="width:9px;height:9px;border-radius:50%;background:${c};display:inline-block"></span>${TIPOS[o.t].label}</span>
+    <h2>${o.n}</h2>
+    <div class="flags">
+      ${o.cubierta ? '<span class="chip cov">✓ Contenido cubierto</span>' : '<span class="chip non">Sin cubrir</span>'}
+      ${o.publicada ? '<span class="chip pub">★ Publicada en redes</span>' : (o.cubierta ? '<span class="chip non">No publicada</span>' : '')}
+    </div>
+    <div class="prog">
+      <div class="row"><b style="color:${c}">${o.p}%</b><span>Avance de obra</span></div>
+      <div class="track"><i style="width:${o.p}%;background:${c}"></i></div>
+    </div>
+    <div class="facts">
+      <div><span>Contacto de obra</span><b>${tel}</b></div>
+      <div><span>Estado</span><b>${o.p>=100?'Finalizada':o.p>=50?'En ejecución avanzada':o.p>0?'En ejecución':'Por iniciar'}</b></div>
+    </div>
+    ${o.mega ? `<a class="mega" href="${o.mega}" target="_blank" rel="noopener">Abrir material en Mega ↗</a>` : ''}
+    ${o.url ? `<a class="mega" style="border-color:var(--line);background:var(--panel2);color:var(--fg-dim)" href="${o.url}" target="_blank" rel="noopener">Ver en Google Maps ↗</a>` : ''}
+    <div class="coords">${o.lat.toFixed(5)}, ${o.lng.toFixed(5)}</div>`;
+  render();
+}
+function deselect(){
+  if(state.sel!==null && OBRAS[state.sel]) OBRAS[state.sel].marker.setIcon(pinIcon(OBRAS[state.sel],false));
+  state.sel=null;
+  document.getElementById('detail').className='detail';
+  render();
+}
+
+/* ── carga de datos ─────────────────────────────────────────── */
+function renderPend(){
+  const box = document.getElementById('pend');
+  if(!PENDIENTES.length){ box.className='pend'; box.innerHTML=''; return; }
+  box.className='pend on';
+  box.innerHTML = `<div class="ph"><span>Faltan coordenadas · ${PENDIENTES.length}</span></div>
+    <div class="tip">Los links cortos de Google Maps no se pueden leer automáticamente. Abrí cada obra, clic derecho sobre el punto → se copian las coordenadas, y pegalas acá. Queda guardado y no lo volvés a hacer.</div>`;
+  PENDIENTES.forEach((o,i)=>{
+    const row = document.createElement('div');
+    row.className='pr';
+    row.innerHTML = `<h5>${o.n}</h5>
+      <div class="in">
+        <input type="text" placeholder="-31.42000, -64.18800" data-i="${i}">
+        ${o.url ? `<a href="${o.url}" target="_blank" rel="noopener">Maps ↗</a>` : ''}      </div>`;
+    const inp = row.querySelector('input');
+    const commit = ()=>{
+      const m = inp.value.match(/(-?\d+[.,]\d+)\s*[,; ]\s*(-?\d+[.,]\d+)/);
+      if(!m){ inp.style.borderColor = inp.value.trim() ? 'oklch(0.65 0.18 25)' : ''; return; }
+      MANUAL[o.n] = [parseFloat(m[1].replace(',','.')), parseFloat(m[2].replace(',','.'))];
+      saveManual();
+      if(ULTIMO_CSV) load(ULTIMO_CSV, document.getElementById('srcnote').dataset.origen || 'planilla');
+    };
+    inp.onchange = commit;
+    inp.onkeydown = e => { if(e.key==='Enter') commit(); };
+    inp.onpaste = () => setTimeout(commit, 0);
+    box.appendChild(row);
+  });
+}
+
+function load(text, origen){
+  ULTIMO_CSV = text;
+  const {obras, pend} = fromCSV(text);
+  OBRAS = obras; PENDIENTES = pend;
+  build(); renderTypes(); renderCov(); renderPend(); render();
+  const note = document.getElementById('srcnote');
+  note.dataset.origen = origen;
+  note.textContent = (obras.length || pend.length)
+    ? `${obras.length} en el mapa · ${pend.length} sin coordenadas · ${origen}`
+    : `Sin filas válidas en ${origen}.`;
+  if(obras.length){
+    const b = L.latLngBounds(obras.map(o=>[o.lat,o.lng]));
+    map.fitBounds(b.pad(0.25), {maxZoom:14, paddingTopLeft:[196,10], paddingBottomRight:[10,10]});
+  }
+}
+async function fromURL(){
+  if(!FUENTE_CSV) return;
+  const note = document.getElementById('srcnote');
+  note.textContent = 'Cargando planilla…';
+  try{
+    const r = await fetch(FUENTE_CSV, {cache:'no-store'});
+    if(!r.ok) throw new Error(r.status);
+    load(decode(await r.arrayBuffer()), 'planilla en línea');
+  }catch(e){ note.textContent = 'No se pudo leer la planilla. Probá con Cargar CSV.'; }
+}
+/* algunas planillas salen en Latin-1: si el UTF-8 trae basura, reintenta */
+function decode(buf){
+  const u = new TextDecoder('utf-8').decode(buf);
+  return u.includes('\uFFFD') ? new TextDecoder('windows-1252').decode(buf) : u;
+}
+
+document.getElementById('csvfile').onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => load(decode(rd.result), f.name);
+  rd.readAsArrayBuffer(f);
+  e.target.value = '';
+};
+document.getElementById('reload').onclick = () =>
+  FUENTE_CSV ? fromURL() : (document.getElementById('srcnote').textContent = 'No hay planilla en línea configurada (FUENTE_CSV vacío).');
+
+const drop = document.getElementById('drop');
+['dragenter','dragover'].forEach(ev => document.addEventListener(ev, e=>{ e.preventDefault(); drop.className='drop on'; }));
+['dragleave','drop'].forEach(ev => document.addEventListener(ev, e=>{ if(ev==='dragleave' && e.relatedTarget) return; drop.className='drop'; }));
+document.addEventListener('drop', e=>{
+  e.preventDefault();
+  const f = e.dataTransfer.files[0]; if(!f) return;
+  const rd = new FileReader(); rd.onload = () => load(decode(rd.result), f.name); rd.readAsArrayBuffer(f);
+});
+
+document.getElementById('q').oninput = e => { state.q = e.target.value; render(); };
+document.getElementById('minp').oninput = e => {
+  state.minp = +e.target.value;
+  document.getElementById('minout').textContent = state.minp + ' – 100%';
+  render();
+};
+document.getElementById('type-all').onclick = ()=>{ state.types = new Set(Object.keys(TIPOS)); renderTypes(); render(); };
+document.getElementById('cov-all').onclick = ()=>{ state.cov = new Set(['pub','nopub','sin']); renderCov(); render(); };
+map.on('click', deselect);
+
+const lg = document.getElementById('legend');
+document.getElementById('legend-t').onclick = e => {
+  const min = lg.className.includes('min');
+  lg.className = min ? 'legend' : 'legend min';
+  e.target.textContent = min ? '−' : '+';
+  e.target.title = min ? 'Contraer leyenda' : 'Ver leyenda';
+};
+
+renderTypes(); renderCov(); renderPend(); render(); fromURL();
+</script>
+</body>
+</html>
