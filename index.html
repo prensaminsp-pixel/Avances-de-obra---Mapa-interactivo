@@ -210,11 +210,11 @@
   .detail h2{margin:10px 0 4px;font-size:17px;font-weight:700;letter-spacing:-0.015em;padding-right:14px}
   .detail .flags{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}
   .facts{display:grid;grid-template-columns:1fr 1fr;gap:12px;border-top:1px solid var(--line);padding-top:14px;margin-top:16px}
-  .gac{margin-top:10px;border:1px solid var(--line);border-radius:6px;background:var(--panel2);overflow:hidden}
-  .gac summary{list-style:none;cursor:pointer;padding:9px 11px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-dim)}
+  .gac summary{list-style:none;cursor:pointer;padding:9px 11px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.84 0.11 225)}
+  .gac{margin-top:10px;border:1px solid oklch(0.72 0.13 225 / .5);border-radius:6px;background:oklch(0.72 0.13 225 / .12);overflow:hidden}
   .gac summary::-webkit-details-marker{display:none}
   .gac summary:hover{color:var(--fg)}
-  .gac[open] summary{border-bottom:1px solid var(--line)}
+  .gac[open] summary{border-bottom:1px solid oklch(0.72 0.13 225 / .4)}
   .gac .txt{padding:12px;font-size:12.5px;line-height:1.55;color:var(--fg-dim);max-height:220px;overflow-y:auto;white-space:pre-wrap}
   .notas{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
   .notas span{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-faint);margin-bottom:4px}
@@ -641,7 +641,7 @@ function select(id, fly){
     ? `<a href="tel:${o.contacto.replace(/[^\d+]/g,'')}">${o.contacto}</a>` : (o.contacto || '—');
   const gacHTML = !o.gacetilla ? ''
     : /^https?:/i.test(o.gacetilla)
-      ? `<a class="mega" style="border-color:var(--line);background:var(--panel2);color:var(--fg-dim)" href="${o.gacetilla}" target="_blank" rel="noopener">Leer gacetilla de prensa ↗</a>`
+      ? `<a class="mega" style="border-color:oklch(0.72 0.13 225 / .5);background:oklch(0.72 0.13 225 / .12);color:oklch(0.84 0.11 225)" href="${o.gacetilla}" target="_blank" rel="noopener">Leer gacetilla de prensa ↗</a>`
       : `<details class="gac"><summary>Leer gacetilla de prensa</summary><div class="txt">${o.gacetilla}</div></details>`;
   const det = document.getElementById('detail');
   det.className = 'detail on';
