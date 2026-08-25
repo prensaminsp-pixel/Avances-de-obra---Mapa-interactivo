@@ -138,7 +138,17 @@
   .chip.pub{border-color:oklch(0.78 0.16 95 / .55);color:oklch(0.86 0.14 95);background:oklch(0.78 0.16 95 / .12)}
   .chip.non{border-style:dashed;color:var(--fg-faint)}
   .chip.est{border-color:oklch(0.68 0.15 245 / .55);color:oklch(0.80 0.13 245);background:oklch(0.68 0.15 245 / .12)}
-  .chip.fin{border-color:var(--fg-faint);color:var(--fg-dim)}
+  .pin u{
+    position:absolute;left:-4px;bottom:-4px;width:12px;height:12px;border-radius:2px;
+    border:1.5px solid var(--panel);
+    background:repeating-conic-gradient(#fff 0% 25%, #16181d 0% 50%) 0 0 / 6px 6px;
+  }
+  .flag{
+    display:inline-block;width:9px;height:9px;border-radius:1.5px;flex:none;
+    background:repeating-conic-gradient(#fff 0% 25%, #16181d 0% 50%) 0 0 / 4.5px 4.5px;
+    box-shadow:0 0 0 1px oklch(0.55 0.01 260);
+  }
+  .chip.fin{border-color:var(--fg-faint);color:var(--fg)}
   .item .flags{display:flex;flex-direction:column;gap:4px;align-items:flex-end}
 
   .empty{padding:26px 16px;color:var(--fg-faint);font-size:13px}
@@ -288,6 +298,7 @@
       <div class="row"><span class="sw" style="background:oklch(0.72 0.15 150)"></span>Cubierta (con registro)</div>
       <div class="row"><span class="sw" style="background:oklch(0.80 0.16 95)"></span>Publicada en redes</div>
       <div class="row"><span class="sw dash"></span>Sin cubrir</div>
+      <div class="row"><span class="flag" style="width:14px;height:14px;border-radius:2px;background-size:7px 7px"></span>Obra finalizada</div>
       <hr>
       <h4>Tipo de obra</h4>
       <div class="row"><span class="sw" style="background:var(--plaza)"></span>Plazas</div>
@@ -477,13 +488,14 @@ function fromCSV(text){
 function pinIcon(o, sel){
   const c = TIPOS[o.t].color, size = sel ? 25 : 19;
   const badge = (o.cubierta && o.publicada) ? '<s class="p">★</s>' : o.cubierta ? '<s class="c">✓</s>' : '';
+  const flag = o.estado === 'fin' ? '<u></u>' : '';
   const fill = o.cubierta
     ? `background:${c};border:2px solid oklch(0.20 0.01 260 / .55)`
     : `background:oklch(0.22 0.01 260 / .9);border:2px dashed ${c}`;
   return L.divIcon({
     className:'', iconSize:[size,size], iconAnchor:[size/2,size/2],
     html:`<div class="pin${sel?' sel':''}${o.cubierta?'':' uncov'}" style="width:${size}px;height:${size}px">
-            <i style="${fill}"></i>${badge}
+            <i style="${fill}"></i>${badge}${flag}
           </div>`
   });
 }
@@ -592,7 +604,7 @@ function render(){
         <div class="meta"><span class="tag" style="color:${c}">${TIPOS[o.t].label}</span></div>
       </div>
       <div class="flags">
-        <span class="chip ${o.estado==='fin'?'fin':'est'}">${ESTADOS[o.estado].label}</span>
+        <span class="chip ${o.estado==='fin'?'fin':'est'}">${o.estado==='fin'?'<span class="flag"></span>':''}${ESTADOS[o.estado].label}</span>
         ${o.cubierta ? '<span class="chip cov">Cubierta</span>' : '<span class="chip non">Sin cubrir</span>'}
         ${(o.cubierta && o.publicada) ? '<span class="chip pub">En redes</span>' : ''}
         ${o.mega ? '<span class="chip">Mega</span>' : ''}
@@ -631,7 +643,7 @@ function select(id, fly){
     </div>
     <div class="facts">
       <div><span>Contacto de obra</span><b>${tel}</b></div>
-      <div><span>Estado de obra</span><b>${ESTADOS[o.estado].label}</b></div>
+      <div><span>Estado de obra</span><b>${o.estado==='fin'?'<span class="flag" style="margin-right:5px"></span>':''}${ESTADOS[o.estado].label}</b></div>
       <div><span>Tipo de obra</span><b>${TIPOS[o.t].label}</b></div>
     </div>
     ${o.notas ? `<div class="notas"><span>Notas</span><p>${o.notas}</p></div>` : ''}
