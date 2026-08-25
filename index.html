@@ -463,7 +463,7 @@ function fromCSV(text){
       notas: (notas==='-'||notas==='—') ? '' : notas,
       estado: estadoKey(get(c.es)),
       cubierta: c.ra>-1 ? esSi(get(c.ra)) : !!mega,
-      publicada: esSi(get(c.pb)) || !!lp
+      publicada: c.pb>-1 ? esSi(get(c.pb)) : !!lp
     };
     const xy = MANUAL[nombre] || coords(url, c.lat>-1?get(c.lat):'', c.lng>-1?get(c.lng):'');
     if(!xy){ pend.push(o); return; }
