@@ -57,6 +57,7 @@
   .controls{padding:14px 16px;display:flex;flex-direction:column;gap:14px;border-bottom:1px solid var(--line);flex:none}
   .filters{display:flex;flex-direction:column;gap:14px}
   .ctl-label{display:flex;align-items:center;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--fg-faint);margin-bottom:8px}
+  .ctl-label .acts{display:flex;gap:9px}
   .ctl-label button{background:none;border:0;padding:0;font:inherit;letter-spacing:0.1em;color:var(--fg-faint);cursor:pointer;text-transform:uppercase}
   .ctl-label button:hover{color:var(--fg)}
   input[type=search]{
@@ -208,6 +209,12 @@
   .detail h2{margin:10px 0 4px;font-size:17px;font-weight:700;letter-spacing:-0.015em;padding-right:14px}
   .detail .flags{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}
   .facts{display:grid;grid-template-columns:1fr 1fr;gap:12px;border-top:1px solid var(--line);padding-top:14px;margin-top:16px}
+  .gac{margin-top:10px;border:1px solid var(--line);border-radius:6px;background:var(--panel2);overflow:hidden}
+  .gac summary{list-style:none;cursor:pointer;padding:9px 11px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-dim)}
+  .gac summary::-webkit-details-marker{display:none}
+  .gac summary:hover{color:var(--fg)}
+  .gac[open] summary{border-bottom:1px solid var(--line)}
+  .gac .txt{padding:12px;font-size:12.5px;line-height:1.55;color:var(--fg-dim);max-height:220px;overflow-y:auto;white-space:pre-wrap}
   .notas{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
   .notas span{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-faint);margin-bottom:4px}
   .notas p{margin:0;font-size:12.5px;color:var(--fg-dim);line-height:1.5}
@@ -273,15 +280,15 @@
         <input type="search" id="q" placeholder="Obra, contacto o coordenada…" autocomplete="off">
       </div>
       <div>
-        <div class="ctl-label"><span>Cobertura de contenido</span><button type="button" id="cov-all">Todas</button></div>
+        <div class="ctl-label"><span>Cobertura de contenido</span><span class="acts"><button type="button" id="cov-all">Todas</button><button type="button" id="cov-none">Ninguna</button></span></div>
         <div class="seg" id="cov"></div>
       </div>
       <div>
-        <div class="ctl-label"><span>Estado de obra</span><button type="button" id="est-all">Todas</button></div>
+        <div class="ctl-label"><span>Estado de obra</span><span class="acts"><button type="button" id="est-all">Todas</button><button type="button" id="est-none">Ninguna</button></span></div>
         <div class="seg" id="est"></div>
       </div>
       <div>
-        <div class="ctl-label"><span>Tipo de obra</span><button type="button" id="type-all">Todas</button></div>
+        <div class="ctl-label"><span>Tipo de obra</span><span class="acts"><button type="button" id="type-all">Todas</button><button type="button" id="type-none">Ninguna</button></span></div>
         <div class="types" id="types"></div>
       </div>
       </div>
@@ -455,6 +462,7 @@ function fromCSV(text){
     m: pickCol(H,['mega','link de mega','drive']),
     lp: pickCol(H,['link de publicacion','link publicacion','link de post','publicacion']),
     no: pickCol(H,['notas','nota','observaciones','observacion','comentarios']),
+    ga: pickCol(H,['gacetilla']),
     es: pickCol(H,['estado de obra','estado']),
     ra: pickCol(H,['registro audiovisual','registro','cubierta','cubrimos']),
     pb: pickCol(H,['publicada','publicado','redes','estado de publicacion'])
@@ -465,13 +473,14 @@ function fromCSV(text){
     const nombre = get(c.n);
     if(!nombre) return;
     const url = get(c.u), mega = get(c.m), ct = get(c.ct);
-    const lp = get(c.lp), notas = get(c.no);
+    const lp = get(c.lp), notas = get(c.no), gac = get(c.ga);
     const o = {
       n:nombre, t:tipoKey(get(c.t)),
       contacto: (ct==='-'||ct==='—') ? '' : ct,
       mega:mega, url:url,
       pubLink: (lp==='-'||lp==='—') ? '' : lp,
       notas: (notas==='-'||notas==='—') ? '' : notas,
+      gacetilla: (gac==='-'||gac==='—') ? '' : gac,
       estado: estadoKey(get(c.es)),
       cubierta: c.ra>-1 ? esSi(get(c.ra)) : !!mega,
       publicada: c.pb>-1 ? esSi(get(c.pb)) : !!lp
@@ -517,7 +526,7 @@ function visible(){
     if(!state.est.has(o.estado)) return false;
     const bucket = o.cubierta ? (o.publicada?'pub':'nopub') : 'sin';
     if(!state.cov.has(bucket)) return false;
-    if(q && !norm(o.n+' '+o.contacto+' '+o.notas+' '+o.lat+' '+o.lng).includes(q)) return false;
+    if(q && !norm(o.n+' '+o.contacto+' '+o.notas+' '+o.gacetilla+' '+o.lat+' '+o.lng).includes(q)) return false;
     return true;
   });
 }
@@ -533,7 +542,6 @@ function renderTypes(){
     b.innerHTML = `<span class="dot" style="background:${v.color}"></span>${v.label}<span class="n">${n}</span>`;
     b.onclick = ()=>{
       state.types.has(k) ? state.types.delete(k) : state.types.add(k);
-      if(!state.types.size) state.types = new Set(Object.keys(TIPOS));
       renderTypes(); render();
     };
     box.appendChild(b);
@@ -548,7 +556,6 @@ function renderEst(){
     b.innerHTML = `${v.label}<span class="n">${n}</span>`;
     b.onclick = ()=>{
       state.est.has(k) ? state.est.delete(k) : state.est.add(k);
-      if(!state.est.size) state.est = new Set(['ejec','fin']);
       renderEst(); render();
     };
     box.appendChild(b);
@@ -564,7 +571,6 @@ function renderCov(){
     b.innerHTML = `${label}<span class="n">${n}</span>`;
     b.onclick = ()=>{
       state.cov.has(k) ? state.cov.delete(k) : state.cov.add(k);
-      if(!state.cov.size) state.cov = new Set(['pub','nopub','sin']);
       renderCov(); render();
     };
     box.appendChild(b);
@@ -590,7 +596,7 @@ function render(){
     list.insertAdjacentHTML('beforeend', OBRAS.length
       ? '<div class="empty">Ningún resultado con estos filtros.</div>'
       : `<div class="empty"><b>Sin obras cargadas.</b>Cargá el CSV de la planilla (o soltalo sobre el mapa). Columnas esperadas:
-         <code>Nombre de obra · Registro audiovisual · Lat · Long · Contacto · Tipo de obra · Estado de obra · Link de Mega · Obra publicada · Link de publicación · Notas</code></div>`);
+         <code>Nombre de obra · Registro audiovisual · Lat · Long · Contacto · Tipo de obra · Estado de obra · Link de Mega · Obra publicada · Link de publicación · Gacetilla de prensa · Notas</code></div>`);
   }
   vis.slice().sort((a,b)=> (b.cubierta-a.cubierta) || a.n.localeCompare(b.n)).forEach(o=>{
     const c = TIPOS[o.t].color;
@@ -608,6 +614,7 @@ function render(){
         ${o.cubierta ? '<span class="chip cov">Cubierta</span>' : '<span class="chip non">Sin cubrir</span>'}
         ${(o.cubierta && o.publicada) ? '<span class="chip pub">En redes</span>' : ''}
         ${o.mega ? '<span class="chip">Mega</span>' : ''}
+        ${o.gacetilla ? '<span class="chip">Gacetilla</span>' : ''}
       </div>`;
     el.onclick = ()=> select(o.id, true);
     list.appendChild(el);
@@ -631,6 +638,10 @@ function select(id, fly){
   if(fly) map.flyTo([o.lat,o.lng], Math.max(map.getZoom(),15), {duration:0.7});
   const tel = o.contacto && /\d{6,}/.test(o.contacto)
     ? `<a href="tel:${o.contacto.replace(/[^\d+]/g,'')}">${o.contacto}</a>` : (o.contacto || '—');
+  const gacHTML = !o.gacetilla ? ''
+    : /^https?:/i.test(o.gacetilla)
+      ? `<a class="mega" style="border-color:var(--line);background:var(--panel2);color:var(--fg-dim)" href="${o.gacetilla}" target="_blank" rel="noopener">Leer gacetilla de prensa ↗</a>`
+      : `<details class="gac"><summary>Leer gacetilla de prensa</summary><div class="txt">${o.gacetilla}</div></details>`;
   const det = document.getElementById('detail');
   det.className = 'detail on';
   det.innerHTML = `
@@ -649,6 +660,7 @@ function select(id, fly){
     ${o.notas ? `<div class="notas"><span>Notas</span><p>${o.notas}</p></div>` : ''}
     ${o.pubLink ? `<a class="mega" style="border-color:oklch(0.78 0.16 95 / .5);background:oklch(0.78 0.16 95 / .12);color:oklch(0.88 0.14 95)" href="${o.pubLink}" target="_blank" rel="noopener">Ver publicación ↗</a>` : ''}
     ${o.mega ? `<a class="mega" href="${o.mega}" target="_blank" rel="noopener">Abrir material en Mega ↗</a>` : ''}
+    ${gacHTML}
     ${o.url ? `<a class="mega" style="border-color:var(--line);background:var(--panel2);color:var(--fg-dim)" href="${o.url}" target="_blank" rel="noopener">Ver en Google Maps ↗</a>` : ''}
     <div class="coords">${o.lat.toFixed(5)}, ${o.lng.toFixed(5)}</div>`;
   render();
@@ -741,8 +753,11 @@ document.addEventListener('drop', e=>{
 
 document.getElementById('q').oninput = e => { state.q = e.target.value; render(); };
 document.getElementById('type-all').onclick = ()=>{ state.types = new Set(Object.keys(TIPOS)); renderTypes(); render(); };
+document.getElementById('type-none').onclick = ()=>{ state.types = new Set(); renderTypes(); render(); };
 document.getElementById('cov-all').onclick = ()=>{ state.cov = new Set(['pub','nopub','sin']); renderCov(); render(); };
+document.getElementById('cov-none').onclick = ()=>{ state.cov = new Set(); renderCov(); render(); };
 document.getElementById('est-all').onclick = ()=>{ state.est = new Set(['ejec','fin']); renderEst(); render(); };
+document.getElementById('est-none').onclick = ()=>{ state.est = new Set(); renderEst(); render(); };
 map.on('click', deselect);
 
 const lg = document.getElementById('legend');
