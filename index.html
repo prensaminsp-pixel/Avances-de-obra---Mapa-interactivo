@@ -18,10 +18,13 @@
     --fg-dim:oklch(0.72 0.012 260);
     --fg-faint:oklch(0.58 0.012 260);
     --mute:oklch(0.42 0.010 260);
-    --bacheo:oklch(0.70 0.15 62);
-    --pavimento:oklch(0.70 0.15 330);
-    --plaza:oklch(0.70 0.15 150);
-    --cloaca:oklch(0.70 0.15 245);
+    --bacheo:oklch(0.74 0.15 62);
+    --pavimento:oklch(0.68 0.16 330);
+    --repavimento:oklch(0.66 0.15 285);
+    --plaza:oklch(0.72 0.15 150);
+    --cloaca:oklch(0.68 0.15 245);
+    --rampa:oklch(0.66 0.17 25);
+    --firme:oklch(0.78 0.13 95);
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%}
@@ -39,9 +42,10 @@
     display:flex;align-items:center;gap:24px;flex-wrap:wrap;
     padding:14px 20px;border-bottom:1px solid var(--line);background:var(--panel);
   }
-  .brand{display:flex;flex-direction:column;gap:2px;margin-right:auto}
-  .brand h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-0.01em}
-  .brand span{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--fg-faint)}
+  .brand{display:flex;flex-direction:column;gap:7px;margin-right:auto}
+  .brand img{height:38px;width:auto;align-self:flex-start;object-fit:contain;display:block}
+  .brand h1{margin:0;font-size:12px;font-weight:500;letter-spacing:0.01em;color:var(--fg-dim)}
+  .brand span{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-faint)}
   .kpis{display:flex;gap:10px;flex-wrap:wrap}
   .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 14px;min-width:104px}
   .kpi b{display:block;font-size:20px;font-weight:700;letter-spacing:-0.02em;line-height:1.1}
@@ -118,8 +122,8 @@
   .item:hover{background:var(--panel2)}
   .item.on{background:var(--panel2);box-shadow:inset 3px 0 0 var(--fg)}
   .item.uncovered{opacity:0.68}
-  .item .bar{width:4px;align-self:stretch;border-radius:2px;background:var(--line);position:relative;overflow:hidden}
-  .item .bar i{position:absolute;bottom:0;left:0;right:0;display:block}
+  .item .bar{width:9px;height:9px;border-radius:50%;margin-top:4px;flex:none}
+  .item .bar.hollow{background:none!important;box-shadow:inset 0 0 0 1.5px var(--mute)}
   .item h3{margin:0 0 3px;font-size:13.5px;font-weight:600;letter-spacing:-0.005em}
   .item p{margin:0;font-size:12px;color:var(--fg-faint)}
   .item .meta{display:flex;align-items:baseline;gap:8px;margin-top:5px;flex-wrap:wrap}
@@ -133,6 +137,8 @@
   .chip.cov{border-color:oklch(0.70 0.15 150 / .55);color:oklch(0.80 0.13 150);background:oklch(0.70 0.15 150 / .12)}
   .chip.pub{border-color:oklch(0.78 0.16 95 / .55);color:oklch(0.86 0.14 95);background:oklch(0.78 0.16 95 / .12)}
   .chip.non{border-style:dashed;color:var(--fg-faint)}
+  .chip.est{border-color:oklch(0.68 0.15 245 / .55);color:oklch(0.80 0.13 245);background:oklch(0.68 0.15 245 / .12)}
+  .chip.fin{border-color:var(--fg-faint);color:var(--fg-dim)}
   .item .flags{display:flex;flex-direction:column;gap:4px;align-items:flex-end}
 
   .empty{padding:26px 16px;color:var(--fg-faint);font-size:13px}
@@ -191,13 +197,10 @@
   .detail .tag{display:inline-flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--fg-dim)}
   .detail h2{margin:10px 0 4px;font-size:17px;font-weight:700;letter-spacing:-0.015em;padding-right:14px}
   .detail .flags{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}
-  .prog{margin:16px 0 14px}
-  .prog .row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
-  .prog .row b{font-size:26px;font-weight:700;letter-spacing:-0.03em}
-  .prog .row span{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-faint)}
-  .track{height:6px;border-radius:3px;background:var(--panel2);overflow:hidden}
-  .track i{display:block;height:100%;border-radius:3px}
-  .facts{display:grid;grid-template-columns:1fr 1fr;gap:12px;border-top:1px solid var(--line);padding-top:14px}
+  .facts{display:grid;grid-template-columns:1fr 1fr;gap:12px;border-top:1px solid var(--line);padding-top:14px;margin-top:16px}
+  .notas{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
+  .notas span{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-faint);margin-bottom:4px}
+  .notas p{margin:0;font-size:12.5px;color:var(--fg-dim);line-height:1.5}
   .facts div span{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-faint);margin-bottom:2px}
   .facts div b{font-size:12.5px;font-weight:500;word-break:break-word}
   .mega{
@@ -231,15 +234,15 @@
 <body>
 <header>
   <div class="brand">
+    <img src="logo-minis.png" alt="Ministerio de Infraestructura y Servicios Públicos — Provincia de Córdoba">
     <h1>Obras Públicas · Ciudad de Córdoba</h1>
-    <span>Bacheo · Pavimentación · Plazas · Cloacas — avance y cobertura de contenido</span>
+    <span>Plazas · Cloacas · Bacheo · Pavimentación · Repavimentación · Rampas · Firme natural</span>
   </div>
   <div class="kpis">
     <div class="kpi"><b id="k-total">0</b><span>Obras</span></div>
     <div class="kpi"><b id="k-cov">0<em id="k-cov-p"></em></b><span>Cubiertas</span></div>
     <div class="kpi"><b id="k-pub">0</b><span>Publicadas</span></div>
     <div class="kpi"><b id="k-pend">0</b><span>Sin cubrir</span></div>
-    <div class="kpi"><b id="k-avg">0%</b><span>Avance medio</span></div>
   </div>
 </header>
 
@@ -264,15 +267,12 @@
         <div class="seg" id="cov"></div>
       </div>
       <div>
-        <div class="ctl-label"><span>Tipo de obra</span><button type="button" id="type-all">Todas</button></div>
-        <div class="types" id="types"></div>
+        <div class="ctl-label"><span>Estado de obra</span><button type="button" id="est-all">Todas</button></div>
+        <div class="seg" id="est"></div>
       </div>
       <div>
-        <div class="ctl-label"><span>Avance de obra</span></div>
-        <div class="range">
-          <input type="range" id="minp" min="0" max="100" step="5" value="0">
-          <output id="minout">0 – 100%</output>
-        </div>
+        <div class="ctl-label"><span>Tipo de obra</span><button type="button" id="type-all">Todas</button></div>
+        <div class="types" id="types"></div>
       </div>
       </div>
     </div>
@@ -290,10 +290,13 @@
       <div class="row"><span class="sw dash"></span>Sin cubrir</div>
       <hr>
       <h4>Tipo de obra</h4>
-      <div class="row"><span class="sw" style="background:var(--bacheo)"></span>Bacheo</div>
-      <div class="row"><span class="sw" style="background:var(--pavimento)"></span>Pavimentación</div>
       <div class="row"><span class="sw" style="background:var(--plaza)"></span>Plazas</div>
       <div class="row"><span class="sw" style="background:var(--cloaca)"></span>Cloacas</div>
+      <div class="row"><span class="sw" style="background:var(--bacheo)"></span>Bacheo</div>
+      <div class="row"><span class="sw" style="background:var(--pavimento)"></span>Pavimentación</div>
+      <div class="row"><span class="sw" style="background:var(--repavimento)"></span>Repavimentación</div>
+      <div class="row"><span class="sw" style="background:var(--rampa)"></span>Rampas</div>
+      <div class="row"><span class="sw" style="background:var(--firme)"></span>Firme natural</div>
     </div>
     <div class="detail" id="detail"></div>
     <div class="drop" id="drop">Soltá el CSV acá</div>
@@ -310,10 +313,13 @@
 const FUENTE_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRbR_hsNL1K5NT0xwI_2OhQvMV0rdbhi77Tx16mK3uA63MDHB32i8emcwSJ4_d4oIzVFwSO0g8Hk9QG/pub?gid=1754632378&single=true&output=csv';
 
 const TIPOS = {
-  bacheo:    {label:'Bacheo', color:'oklch(0.70 0.15 62)'},
-  pavimento: {label:'Pavimentación', color:'oklch(0.70 0.15 330)'},
-  plaza:     {label:'Plazas y espacio público', color:'oklch(0.70 0.15 150)'},
-  cloaca:    {label:'Cloacas y red sanitaria', color:'oklch(0.70 0.15 245)'}
+  plaza:       {label:'Plazas', color:'oklch(0.72 0.15 150)'},
+  cloaca:      {label:'Cloacas', color:'oklch(0.68 0.15 245)'},
+  bacheo:      {label:'Bacheo', color:'oklch(0.74 0.15 62)'},
+  pavimento:   {label:'Pavimentación', color:'oklch(0.68 0.16 330)'},
+  repavimento: {label:'Repavimentación', color:'oklch(0.66 0.15 285)'},
+  rampa:       {label:'Rampas', color:'oklch(0.66 0.17 25)'},
+  firme:       {label:'Firme natural', color:'oklch(0.78 0.13 95)'}
 };
 
 const COBERTURA = {
@@ -326,12 +332,18 @@ const COBERTURA = {
 /* Obras cargadas en memoria. Estructura por obra:
    { n, t:'bacheo'|'pavimento'|'plaza'|'cloaca', p:0-100,
      lat, lng, contacto, mega, publicada, cubierta }            */
+const ESTADOS = {
+  ejec: {label:'En ejecución'},
+  fin:  {label:'Finalizada'}
+};
+
 let OBRAS = [];
 
 const state = {
   types:new Set(Object.keys(TIPOS)),
   cov:new Set(['pub','nopub','sin']),
-  q:'', minp:0, sel:null
+  est:new Set(['ejec','fin']),
+  q:'', sel:null
 };
 
 const map = L.map('map', {zoomControl:false, minZoom:10}).setView([-31.4180,-64.1850], 12);
@@ -370,13 +382,20 @@ function pickCol(headers, names){
 }
 function tipoKey(v){
   const s = norm(v);
+  if(s.includes('repav') || s.includes('re-pav')) return 'repavimento';
+  if(s.includes('firme') || s.includes('natural') || s.includes('enripi')) return 'firme';
+  if(s.includes('rampa')) return 'rampa';
   if(s.includes('bache')) return 'bacheo';
-  if(s.includes('pavim') || s.includes('asfalt') || s.includes('repav')) return 'pavimento';
+  if(s.includes('pavim') || s.includes('asfalt')) return 'pavimento';
   if(s.includes('plaza') || s.includes('parque') || s.includes('espacio')) return 'plaza';
   if(s.includes('cloac') || s.includes('sanitar') || s.includes('colector')) return 'cloaca';
   return 'bacheo';
 }
 const esSi = v => ['si','sí','yes','true','x','1','publicada','publicado'].includes(norm(v));
+const estadoKey = v => {
+  const s = norm(v);
+  return (s.includes('finaliz') || s.includes('termin') || s.includes('complet')) ? 'fin' : 'ejec';
+};
 
 /* acepta decimal (-31.42) o sexagesimal (31°26'02.0"S) */
 function num(v){
@@ -423,6 +442,9 @@ function fromCSV(text){
     t: pickCol(H,['tipo']),
     p: pickCol(H,['porcentaje','avance','%']),
     m: pickCol(H,['mega','link de mega','drive']),
+    lp: pickCol(H,['link de publicacion','link publicacion','link de post','publicacion']),
+    no: pickCol(H,['notas','nota','observaciones','observacion','comentarios']),
+    es: pickCol(H,['estado de obra','estado']),
     ra: pickCol(H,['registro audiovisual','registro','cubierta','cubrimos']),
     pb: pickCol(H,['publicada','publicado','redes','estado de publicacion'])
   };
@@ -432,13 +454,16 @@ function fromCSV(text){
     const nombre = get(c.n);
     if(!nombre) return;
     const url = get(c.u), mega = get(c.m), ct = get(c.ct);
+    const lp = get(c.lp), notas = get(c.no);
     const o = {
       n:nombre, t:tipoKey(get(c.t)),
-      p:Math.max(0, Math.min(100, Math.round(parseFloat(get(c.p).replace('%','').replace(',','.'))||0))),
       contacto: (ct==='-'||ct==='—') ? '' : ct,
       mega:mega, url:url,
+      pubLink: (lp==='-'||lp==='—') ? '' : lp,
+      notas: (notas==='-'||notas==='—') ? '' : notas,
+      estado: estadoKey(get(c.es)),
       cubierta: c.ra>-1 ? esSi(get(c.ra)) : !!mega,
-      publicada: esSi(get(c.pb))
+      publicada: esSi(get(c.pb)) || !!lp
     };
     const xy = MANUAL[nombre] || coords(url, c.lat>-1?get(c.lat):'', c.lng>-1?get(c.lng):'');
     if(!xy){ pend.push(o); return; }
@@ -450,15 +475,15 @@ function fromCSV(text){
 
 /* ── pines ──────────────────────────────────────────────────── */
 function pinIcon(o, sel){
-  const c = TIPOS[o.t].color, size = sel ? 34 : 29;
-  const ring = o.cubierta
-    ? `conic-gradient(${c} 0 ${o.p}%, oklch(0.36 0.01 260) ${o.p}% 100%)`
-    : `conic-gradient(color-mix(in oklch, ${c} 40%, oklch(0.40 0.01 260)) 0 ${o.p}%, oklch(0.30 0.01 260) ${o.p}% 100%)`;
+  const c = TIPOS[o.t].color, size = sel ? 25 : 19;
   const badge = (o.cubierta && o.publicada) ? '<s class="p">★</s>' : o.cubierta ? '<s class="c">✓</s>' : '';
+  const fill = o.cubierta
+    ? `background:${c};border:2px solid oklch(0.20 0.01 260 / .55)`
+    : `background:oklch(0.22 0.01 260 / .9);border:2px dashed ${c}`;
   return L.divIcon({
     className:'', iconSize:[size,size], iconAnchor:[size/2,size/2],
     html:`<div class="pin${sel?' sel':''}${o.cubierta?'':' uncov'}" style="width:${size}px;height:${size}px">
-            <i style="background:${ring}"></i><b>${o.p}</b>${badge}
+            <i style="${fill}"></i>${badge}
           </div>`
   });
 }
@@ -476,10 +501,11 @@ function build(){
 function visible(){
   const q = norm(state.q);
   return OBRAS.filter(o=>{
-    if(!state.types.has(o.t) || o.p < state.minp) return false;
+    if(!state.types.has(o.t)) return false;
+    if(!state.est.has(o.estado)) return false;
     const bucket = o.cubierta ? (o.publicada?'pub':'nopub') : 'sin';
     if(!state.cov.has(bucket)) return false;
-    if(q && !norm(o.n+' '+o.contacto+' '+o.lat+' '+o.lng).includes(q)) return false;
+    if(q && !norm(o.n+' '+o.contacto+' '+o.notas+' '+o.lat+' '+o.lng).includes(q)) return false;
     return true;
   });
 }
@@ -501,6 +527,22 @@ function renderTypes(){
     box.appendChild(b);
   });
 }
+function renderEst(){
+  const box = document.getElementById('est'); box.innerHTML='';
+  Object.entries(ESTADOS).forEach(([k,v])=>{
+    const n = OBRAS.filter(o=>o.estado===k).length;
+    const b = document.createElement('button'); b.type='button';
+    b.setAttribute('aria-pressed', state.est.has(k));
+    b.innerHTML = `${v.label}<span class="n">${n}</span>`;
+    b.onclick = ()=>{
+      state.est.has(k) ? state.est.delete(k) : state.est.add(k);
+      if(!state.est.size) state.est = new Set(['ejec','fin']);
+      renderEst(); render();
+    };
+    box.appendChild(b);
+  });
+}
+
 function renderCov(){
   const box = document.getElementById('cov'); box.innerHTML='';
   [['pub','Publicadas'],['nopub','Sin publicar'],['sin','Sin cubrir']].forEach(([k,label])=>{
@@ -536,20 +578,21 @@ function render(){
     list.insertAdjacentHTML('beforeend', OBRAS.length
       ? '<div class="empty">Ningún resultado con estos filtros.</div>'
       : `<div class="empty"><b>Sin obras cargadas.</b>Cargá el CSV de la planilla (o soltalo sobre el mapa). Columnas esperadas:
-         <code>Nombre de obra · Registro audiovisual · Ubicación · Contacto · Tipo · Porcentaje de avance · Link de Mega · Obra publicada</code></div>`);
+         <code>Nombre de obra · Registro audiovisual · Lat · Long · Contacto · Tipo de obra · Estado de obra · Link de Mega · Obra publicada · Link de publicación · Notas</code></div>`);
   }
-  vis.slice().sort((a,b)=> (b.cubierta-a.cubierta) || (b.p-a.p)).forEach(o=>{
+  vis.slice().sort((a,b)=> (b.cubierta-a.cubierta) || a.n.localeCompare(b.n)).forEach(o=>{
     const c = TIPOS[o.t].color;
     const el = document.createElement('div');
     el.className = 'item' + (state.sel===o.id?' on':'') + (o.cubierta?'':' uncovered');
     el.innerHTML = `
-      <div class="bar"><i style="height:${o.p}%;background:${o.cubierta?c:'var(--mute)'}"></i></div>
+      <div class="bar${o.cubierta?'':' hollow'}" style="background:${c}"></div>
       <div>
         <h3>${o.n}</h3>
         <p>${o.contacto || o.lat.toFixed(4)+', '+o.lng.toFixed(4)}</p>
-        <div class="meta"><span class="pct" style="color:${c}">${o.p}%</span><span class="tag">${TIPOS[o.t].label}</span></div>
+        <div class="meta"><span class="tag" style="color:${c}">${TIPOS[o.t].label}</span></div>
       </div>
       <div class="flags">
+        <span class="chip ${o.estado==='fin'?'fin':'est'}">${ESTADOS[o.estado].label}</span>
         ${o.cubierta ? '<span class="chip cov">Cubierta</span>' : '<span class="chip non">Sin cubrir</span>'}
         ${(o.cubierta && o.publicada) ? '<span class="chip pub">En redes</span>' : ''}
         ${o.mega ? '<span class="chip">Mega</span>' : ''}
@@ -561,13 +604,11 @@ function render(){
   document.getElementById('filters').className = OBRAS.length ? 'filters' : 'filters hide';
 
   const cov = vis.filter(o=>o.cubierta).length;
-  const avg = vis.length ? Math.round(vis.reduce((s,o)=>s+o.p,0)/vis.length) : 0;
   document.getElementById('k-total').textContent = vis.length;
   document.getElementById('k-cov').firstChild.textContent = cov;
   document.getElementById('k-cov-p').textContent = vis.length ? ' · '+Math.round(cov/vis.length*100)+'%' : '';
   document.getElementById('k-pub').textContent = vis.filter(o=>o.publicada).length;
   document.getElementById('k-pend').textContent = vis.length - cov;
-  document.getElementById('k-avg').textContent = avg + '%';
 }
 
 function select(id, fly){
@@ -588,14 +629,13 @@ function select(id, fly){
       ${o.cubierta ? '<span class="chip cov">✓ Contenido cubierto</span>' : '<span class="chip non">Sin cubrir</span>'}
       ${o.publicada ? '<span class="chip pub">★ Publicada en redes</span>' : (o.cubierta ? '<span class="chip non">No publicada</span>' : '')}
     </div>
-    <div class="prog">
-      <div class="row"><b style="color:${c}">${o.p}%</b><span>Avance de obra</span></div>
-      <div class="track"><i style="width:${o.p}%;background:${c}"></i></div>
-    </div>
     <div class="facts">
       <div><span>Contacto de obra</span><b>${tel}</b></div>
-      <div><span>Estado</span><b>${o.p>=100?'Finalizada':o.p>=50?'En ejecución avanzada':o.p>0?'En ejecución':'Por iniciar'}</b></div>
+      <div><span>Estado de obra</span><b>${ESTADOS[o.estado].label}</b></div>
+      <div><span>Tipo de obra</span><b>${TIPOS[o.t].label}</b></div>
     </div>
+    ${o.notas ? `<div class="notas"><span>Notas</span><p>${o.notas}</p></div>` : ''}
+    ${o.pubLink ? `<a class="mega" style="border-color:oklch(0.78 0.16 95 / .5);background:oklch(0.78 0.16 95 / .12);color:oklch(0.88 0.14 95)" href="${o.pubLink}" target="_blank" rel="noopener">Ver publicación ↗</a>` : ''}
     ${o.mega ? `<a class="mega" href="${o.mega}" target="_blank" rel="noopener">Abrir material en Mega ↗</a>` : ''}
     ${o.url ? `<a class="mega" style="border-color:var(--line);background:var(--panel2);color:var(--fg-dim)" href="${o.url}" target="_blank" rel="noopener">Ver en Google Maps ↗</a>` : ''}
     <div class="coords">${o.lat.toFixed(5)}, ${o.lng.toFixed(5)}</div>`;
@@ -641,7 +681,7 @@ function load(text, origen){
   ULTIMO_CSV = text;
   const {obras, pend} = fromCSV(text);
   OBRAS = obras; PENDIENTES = pend;
-  build(); renderTypes(); renderCov(); renderPend(); render();
+  build(); renderTypes(); renderCov(); renderEst(); renderPend(); render();
   const note = document.getElementById('srcnote');
   note.dataset.origen = origen;
   note.textContent = (obras.length || pend.length)
@@ -688,13 +728,9 @@ document.addEventListener('drop', e=>{
 });
 
 document.getElementById('q').oninput = e => { state.q = e.target.value; render(); };
-document.getElementById('minp').oninput = e => {
-  state.minp = +e.target.value;
-  document.getElementById('minout').textContent = state.minp + ' – 100%';
-  render();
-};
 document.getElementById('type-all').onclick = ()=>{ state.types = new Set(Object.keys(TIPOS)); renderTypes(); render(); };
 document.getElementById('cov-all').onclick = ()=>{ state.cov = new Set(['pub','nopub','sin']); renderCov(); render(); };
+document.getElementById('est-all').onclick = ()=>{ state.est = new Set(['ejec','fin']); renderEst(); render(); };
 map.on('click', deselect);
 
 const lg = document.getElementById('legend');
@@ -705,7 +741,7 @@ document.getElementById('legend-t').onclick = e => {
   e.target.title = min ? 'Contraer leyenda' : 'Ver leyenda';
 };
 
-renderTypes(); renderCov(); renderPend(); render(); fromURL();
+renderTypes(); renderCov(); renderEst(); renderPend(); render(); fromURL();
 </script>
 </body>
 </html>
